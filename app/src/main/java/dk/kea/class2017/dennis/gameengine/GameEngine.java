@@ -2,8 +2,10 @@ package dk.kea.class2017.dennis.gameengine;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -11,6 +13,8 @@ import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +30,9 @@ public abstract class GameEngine extends Activity implements Runnable
     private SurfaceView surfaceView;
     private SurfaceHolder surfaceHolder;
     private Screen screen;
+    private Canvas canvas = null;
+    Rect src = new Rect();
+    Rect dst = new Rect();
 
     public abstract Screen createStartScreen();
 
@@ -49,7 +56,35 @@ public abstract class GameEngine extends Activity implements Runnable
 
     public Bitmap loadBitmap(String fileName)
     {
-        return null;
+        InputStream in = null;
+        Bitmap bitmap = null;
+
+        try
+        {
+            in = getAssets().open(fileName);
+            bitmap = BitmapFactory.decodeStream(in);
+            if(bitmap == null)
+            {
+                throw new RuntimeException("Could not create a bitmap from file " + fileName);
+            }
+            return bitmap;
+        }
+        catch(IOException e)
+        {
+            throw new RuntimeException("Could not load the bloody file name: " + fileName + "!");
+        }
+        finally
+        {
+            if(in != null)
+                try
+                {
+                    in.close();
+                }
+                catch(IOException e)
+                {
+                    Log.e("GameEngine","loadBitmap() failed to close the file" + fileName);
+                }
+        }
     }
 
 //    public Music loadMusic(String fileName)
@@ -62,22 +97,43 @@ public abstract class GameEngine extends Activity implements Runnable
 //        return null;
 //    }
 
-    public void clearFrameBuffer(int color) {}
+    public void clearFrameBuffer(int color)
+    {
+        canvas.drawColor(color);
+    }
 
     public int getFrameBufferWidth()
     {
-        return 0;
+        return surfaceView.getWidth();
     }
 
     public int getFrameBufferHeight()
     {
-        return 0;
+        return surfaceView.getHeight();
     }
 
-    public void drawBitmap(Bitmap bitmap, int x, int y){}
+    public void drawBitmap(Bitmap bitmap, int x, int y)
+    {
+        if(canvas != null) canvas.drawBitmap(bitmap, x, y, null);
+    }
+
 
     public void drawBitmap(Bitmap bitmap, int x, int y, int srcX,
-                           int srcY, int srcWidth, int srcHeight) {}
+                           int srcY, int srcWidth, int srcHeight)
+    {
+        if(canvas == null) return;
+        src.left = srcX;
+        src.top = srcY;
+        src.right = srcX + srcWidth;
+        src.bottom = srcY + srcHeight;
+
+        dst.left = x;
+        dst.top = y;
+        dst.right = x + srcWidth;
+        dst.bottom = y + srcHeight;
+
+        canvas.drawBitmap(bitmap, src, dst, null);
+    }
 
     public boolean isKeyPressed(int keyCode)
     {
@@ -108,28 +164,45 @@ public abstract class GameEngine extends Activity implements Runnable
                     state = stateChanges.get(i);
                     if(state == State.Disposed)
                     {
+                        if(screen != null)
+                        {
+                            screen.dispose();
+                        }
                         Log.d("GameEngine", "state changed to Disposed");
                         return;
                     }
                     if(state == State.Paused)
                     {
+                        if(screen != null)
+                        {
+                            screen.pause();
+                        }
                         Log.d("GameEngine", "state changed to Paused");
                         return;
                     }
                     if(state == State.Resumed)
                     {
+                        if(screen != null)
+                        {
+                            screen.resume();
+                        }
                         state = State.Running;
                         Log.d("GameEngine", "state changed to Resumed/Running");
                     }
                     //stateChanges.clear();
-                    if(state == State.Resumed)
-                    {
-                        if(!surfaceHolder.getSurface().isValid()) continue;
-                        Canvas canvas = surfaceHolder.lockCanvas();
-                        // we will do all the drawing here
-                        canvas.drawColor(Color.RED);
-                        surfaceHolder.unlockCanvasAndPost(canvas);
-                    }
+
+                }
+                stateChanges.clear();
+                if(state == State.Resumed)
+                {
+                    if(!surfaceHolder.getSurface().isValid()) continue;
+                    canvas = surfaceHolder.lockCanvas();
+                    // we will do all the drawing here
+                    //clearFrameBuffer(Color.RED);
+                    if(screen != null) screen.update(0);
+                    //canvas.drawColor(Color.RED);
+                    surfaceHolder.unlockCanvasAndPost(canvas);
+                    canvas = null;
                 }
             }
         }

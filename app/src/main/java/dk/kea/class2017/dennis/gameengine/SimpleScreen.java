@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
 
+import java.util.Random;
+
 /**
  * Created by Dennis on 07/02/2017.
  */
@@ -13,28 +15,28 @@ public class SimpleScreen extends Screen
     int x = 0;
     int y = 0;
     Bitmap bitmap;
+    Random random = new Random();
 
     public SimpleScreen(GameEngine game)
     {
         super(game);
+        random = new Random();
         Log.d("SimpleGame class", "##################################");
-        bitmap = game.loadBitmap("bob.png");
+        //bitmap = game.loadBitmap("bob.png");
     }
 
     @Override
     public void update(float deltaTime)
     {
-        game.clearFrameBuffer(Color.BLUE);
-        return;
-
 //        Log.d("SimpleGame class", "*******************************");
 //        if(game.isTouchDown(0))
 //        {
 //            x = game.getTouchX(0);
 //            y = game.getTouchY(0);
 //        }
-//        game.clearFrameBuffer(Color.BLUE);
-//        game.drawBitmap(bitmap, x, y);
+        game.clearFrameBuffer(random.nextInt());
+//        game.drawBitmap(bitmap, 10, 10);
+//        game.drawBitmap(bitmap, 100, 150, 0, 0, 64, 64);
     }
 
     @Override
