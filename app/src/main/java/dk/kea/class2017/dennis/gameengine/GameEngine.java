@@ -33,6 +33,7 @@ public abstract class GameEngine extends Activity implements Runnable
     private Canvas canvas = null;
     Rect src = new Rect();
     Rect dst = new Rect();
+    private Bitmap offscreenSurface;
 
     public abstract Screen createStartScreen();
 
@@ -46,6 +47,14 @@ public abstract class GameEngine extends Activity implements Runnable
         setContentView(surfaceView);
         surfaceHolder = surfaceView.getHolder();
         screen = createStartScreen();
+        if(surfaceView.getWidth() > surfaceView.getHeight())
+        {
+            setOffscreenSurface(480, 320);
+        }
+        else
+        {
+            setOffscreenSurface(320, 480);
+        }
     }
 
     public void setScreen(Screen screen)
@@ -102,6 +111,12 @@ public abstract class GameEngine extends Activity implements Runnable
         canvas.drawColor(color);
     }
 
+    public void setOffscreenSurface(int width, int height)
+    {
+        if(offscreenSurface != null) offscreenSurface.recycle();
+        offscreenSurface = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        canvas = new Canvas(offscreenSurface);
+    }
     public int getFrameBufferWidth()
     {
         return surfaceView.getWidth();
@@ -193,14 +208,21 @@ public abstract class GameEngine extends Activity implements Runnable
 
                 }
                 stateChanges.clear();
-                if(state == State.Resumed)
+                if(state == State.Running)
                 {
                     if(!surfaceHolder.getSurface().isValid()) continue;
-                    canvas = surfaceHolder.lockCanvas();
+                    Canvas canvas = surfaceHolder.lockCanvas();
                     // we will do all the drawing here
-                    //clearFrameBuffer(Color.RED);
                     if(screen != null) screen.update(0);
-                    //canvas.drawColor(Color.RED);
+                    src.left = 0;
+                    src.top = 0;
+                    src.right = offscreenSurface.getWidth() - 1;
+                    src.bottom = offscreenSurface.getHeight() - 1;
+                    dst.left = 0;
+                    dst.top = 0;
+                    dst.right = surfaceView.getWidth() - 1;
+                    dst.bottom = surfaceView.getHeight() - 1;
+                    canvas.drawBitmap(offscreenSurface, src, dst, null);
                     surfaceHolder.unlockCanvasAndPost(canvas);
                     canvas = null;
                 }

@@ -15,14 +15,12 @@ public class SimpleScreen extends Screen
     int x = 0;
     int y = 0;
     Bitmap bitmap;
-    Random random = new Random();
 
     public SimpleScreen(GameEngine game)
     {
         super(game);
-        random = new Random();
         Log.d("SimpleGame class", "##################################");
-        //bitmap = game.loadBitmap("bob.png");
+        bitmap = game.loadBitmap("bob.png");
     }
 
     @Override
@@ -34,9 +32,9 @@ public class SimpleScreen extends Screen
 //            x = game.getTouchX(0);
 //            y = game.getTouchY(0);
 //        }
-        game.clearFrameBuffer(random.nextInt());
-//        game.drawBitmap(bitmap, 10, 10);
-//        game.drawBitmap(bitmap, 100, 150, 0, 0, 64, 64);
+        game.clearFrameBuffer(Color.BLUE);
+        game.drawBitmap(bitmap, 10, 10);
+        game.drawBitmap(bitmap, 100, 150, 0, 0, 64, 64);
     }
 
     @Override
