@@ -8,8 +8,10 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -22,7 +24,7 @@ import java.util.List;
  * Created by Dennis on 02/02/2017.
  */
 
-public abstract class GameEngine extends Activity implements Runnable
+public abstract class GameEngine extends Activity implements Runnable, View.OnKeyListener
 {
     private Thread mainLoopThread;
     private State state = State.Paused;
@@ -34,6 +36,7 @@ public abstract class GameEngine extends Activity implements Runnable
     Rect src = new Rect();
     Rect dst = new Rect();
     private Bitmap offscreenSurface;
+    private boolean pressedKeys[] = new boolean[256];
 
     public abstract Screen createStartScreen();
 
@@ -150,9 +153,15 @@ public abstract class GameEngine extends Activity implements Runnable
         canvas.drawBitmap(bitmap, src, dst, null);
     }
 
+    public boolean onKey(View v, int keyCode, KeyEvent event)
+    {
+        if(event.getAction() == KeyEvent.ACTION_DOWN) pressedKeys[keyCode] = true;
+        if(event.getAction() == KeyEvent.ACTION_UP) pressedKeys[keyCode] = false;
+        return false; //"I've handled it" chain-of-responsibility
+    }
     public boolean isKeyPressed(int keyCode)
     {
-        return false;
+        return pressedKeys[keyCode];
     }
 
     public boolean isTouchDown(int pointer)
