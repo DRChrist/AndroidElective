@@ -29,14 +29,14 @@ public class SimpleScreen extends Screen
     {
         game.clearFrameBuffer(clearColor);
 
-        if(game.isKeyPressed(KeyEvent.KEYCODE_VOLUME_DOWN))
+        for(int pointer=0; pointer<5; pointer++)
         {
-            clearColor = Color.RED;//(int) Math.random() * Integer.MAX_VALUE;
+            if(game.isTouchDown(pointer))
+            {
+                game.drawBitmap(bitmap, game.getTouchX(pointer), game.getTouchY(pointer));
+            }
         }
-        else
-        {
-            clearColor = Color.DKGRAY;
-        }
+
 //        game.drawBitmap(bitmap, 10, 10);
 //        game.drawBitmap(bitmap, 100, 150, 0, 0, 64, 64);
     }

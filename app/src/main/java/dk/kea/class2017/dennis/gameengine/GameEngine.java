@@ -24,7 +24,7 @@ import java.util.List;
  * Created by Dennis on 02/02/2017.
  */
 
-public abstract class GameEngine extends Activity implements Runnable, TouchHandler
+public abstract class GameEngine extends Activity implements Runnable
 {
     private Thread mainLoopThread;
     private State state = State.Paused;
@@ -37,6 +37,8 @@ public abstract class GameEngine extends Activity implements Runnable, TouchHand
     Rect dst = new Rect();
     private Bitmap offscreenSurface;
     private TouchHandler touchHandler;
+    private List<TouchEvent> touchEventBuffer = new ArrayList<>();
+    private TouchEventPool touchEventPool = new TouchEventPool();
 
     public abstract Screen createStartScreen();
 
@@ -58,7 +60,7 @@ public abstract class GameEngine extends Activity implements Runnable, TouchHand
         {
             setOffscreenSurface(320, 480);
         }
-        touchHandler = new Multi
+        touchHandler = new MultiTouchHandler(surfaceView, touchEventBuffer, touchEventPool);
     }
 
     public void setScreen(Screen screen)
@@ -157,15 +159,15 @@ public abstract class GameEngine extends Activity implements Runnable, TouchHand
 
     public boolean isTouchDown(int pointer)
     {
-        return false;
+        return touchHandler.isTouchDown(pointer);
     }
     public int getTouchX(int pointer)
     {
-        return 0;
+        return (int) (touchHandler.getTouchX(pointer) * (float) offscreenSurface.getWidth() / (float) surfaceView.getWidth());
     }
     public int getTouchY(int pointer)
     {
-        return 0;
+        return (int) (touchHandler.getTouchY(pointer) * (float) offscreenSurface.getHeight() / (float) surfaceView.getHeight());
     }
 
     public void run()

@@ -1,5 +1,6 @@
 package dk.kea.class2017.dennis.gameengine;
 
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -85,18 +86,18 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
     @Override
     public boolean isTouchDown(int pointer)
     {
-        return false;
+        return isTouched[pointer];
     }
 
     @Override
     public int getTouchX(int pointer)
     {
-        return 0;
+        return touchX[pointer];
     }
 
     @Override
     public int getTouchY(int pointer)
     {
-        return 0;
+        return touchY[pointer];
     }
 }
