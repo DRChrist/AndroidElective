@@ -46,7 +46,10 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
                 touchY[pointerId] = (int) event.getY(pointerIndex);
                 touchEvent.y = touchY[pointerId];
                 isTouched[pointerId] = true;
-                touchEventBuffer.add(touchEvent);
+                synchronized (touchEventBuffer)
+                {
+                    touchEventBuffer.add(touchEvent);
+                }
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
@@ -59,7 +62,10 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
                 touchY[pointerId] = (int) event.getY(pointerIndex);
                 touchEvent.y = touchY[pointerId];
                 isTouched[pointerId] = false;
-                touchEventBuffer.add(touchEvent);
+                synchronized (touchEventBuffer)
+                {
+                    touchEventBuffer.add(touchEvent);
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 int pointerCount = event.getPointerCount();

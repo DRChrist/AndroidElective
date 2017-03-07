@@ -43,6 +43,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     private Bitmap offscreenSurface;
     private TouchHandler touchHandler;
     private List<TouchEvent> touchEventBuffer = new ArrayList<>();
+    private List<TouchEvent> touchEventBufferCopied = new ArrayList<>();
     private TouchEventPool touchEventPool = new TouchEventPool();
     private float[] accelerometer = new float[3];
 
@@ -55,7 +56,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN|
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         surfaceView = new SurfaceView(this);
-        setContentView(surfaceView);
+        setContentView( surfaceView);
         surfaceHolder = surfaceView.getHolder();
         screen = createStartScreen();
         if(surfaceView.getWidth() > surfaceView.getHeight())
@@ -88,6 +89,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
 
         try
         {
+            getAssets();
             in = getAssets().open(fileName);
             bitmap = BitmapFactory.decodeStream(in);
             if(bitmap == null)
@@ -137,12 +139,12 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     }
     public int getFrameBufferWidth()
     {
-        return surfaceView.getWidth();
+        return offscreenSurface.getWidth();
     }
 
     public int getFrameBufferHeight()
     {
-        return surfaceView.getHeight();
+        return offscreenSurface.getHeight();
     }
 
     public void drawBitmap(Bitmap bitmap, int x, int y)
@@ -180,6 +182,32 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     public int getTouchY(int pointer)
     {
         return (int) (touchHandler.getTouchY(pointer) * (float) offscreenSurface.getHeight() / (float) surfaceView.getHeight());
+    }
+
+    private void fillEvents()
+    {
+        synchronized (touchEventBuffer)
+        {
+        // in order for other classes to get the touch events and work with them
+        // we copy them from the original list and clear them and hand over the copied list
+        // this way we minimize the time that the list is being locked under synchronized
+        for(TouchEvent touchEvent: touchEventBuffer)
+        {
+            touchEventBufferCopied.add(touchEvent);
+        }
+            touchEventBuffer.clear();
+        }
+    }
+
+    private void freeEvents()
+    {
+        synchronized(touchEventBufferCopied)
+        {
+            for(TouchEvent touchEventCopied: touchEventBufferCopied)
+            {
+                touchEventPool.free(touchEventCopied);
+            }
+        }
     }
 
 
@@ -230,8 +258,6 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                         state = State.Running;
                         Log.d("GameEngine", "state changed to Resumed/Running");
                     }
-                    //stateChanges.clear();
-
                 }
                 stateChanges.clear();
                 if(state == State.Running)
@@ -239,7 +265,11 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                     if(!surfaceHolder.getSurface().isValid()) continue;
                     Canvas canvas = surfaceHolder.lockCanvas();
                     // we will do all the drawing here
+
+                    fillEvents();
                     if(screen != null) screen.update(0);
+                    freeEvents();
+
                     src.left = 0;
                     src.top = 0;
                     src.right = offscreenSurface.getWidth() - 1;
