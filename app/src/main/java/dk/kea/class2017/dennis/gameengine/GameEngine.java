@@ -2,6 +2,7 @@ package dk.kea.class2017.dennis.gameengine;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -11,6 +12,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -46,6 +50,9 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     private List<TouchEvent> touchEventBufferCopied = new ArrayList<>();
     private TouchEventPool touchEventPool = new TouchEventPool();
     private float[] accelerometer = new float[3];
+    private SoundPool soundPool;
+    private int framesPerSecond = 0;
+
 
     public abstract Screen createStartScreen();
 
@@ -58,7 +65,6 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         surfaceView = new SurfaceView(this);
         setContentView( surfaceView);
         surfaceHolder = surfaceView.getHolder();
-        screen = createStartScreen();
         if(surfaceView.getWidth() > surfaceView.getHeight())
         {
             setOffscreenSurface(480, 320);
@@ -74,6 +80,15 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
             Sensor accSensor = manager.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
             manager.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_GAME);
         }
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        this.soundPool = new SoundPool(20, AudioManager.STREAM_MUSIC, 0);
+
+        //Supported from Android API 21 and higher
+//        SoundPool.Builder builder = new SoundPool.Builder();
+//        builder.setMaxStreams(20);
+//        this.soundPool = builder.build();
+
+        screen = createStartScreen();
     }
 
     public void setScreen(Screen screen)
@@ -116,15 +131,33 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         }
     }
 
-//    public Music loadMusic(String fileName)
-//    {
-//        return null;
-//    }
-//
-//    public Sound loadSound(String fileName)
-//    {
-//        return null;
-//    }
+        public Sound loadSound(String fileName)
+    {
+        try
+        {
+            AssetFileDescriptor assetFileDescriptor = getAssets().openFd(fileName);
+            int soundId = soundPool.load(assetFileDescriptor, 0);
+            return new Sound(soundPool, soundId);
+        }
+        catch(IOException e)
+        {
+            throw new RuntimeException("Could not load sound file" + fileName);
+        }
+    }
+    public Music loadMusic(String fileName)
+    {
+        try
+        {
+            AssetFileDescriptor assetFileDescriptor = getAssets().openFd(fileName);
+            return new Music(assetFileDescriptor);
+        }
+        catch(IOException e)
+        {
+            throw new RuntimeException("Could not load music file:" + fileName + "****************");
+        }
+    }
+
+
 
     public void clearFrameBuffer(int color)
     {
@@ -224,6 +257,8 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
 
     public void run()
     {
+        int frames = 0;
+        long startTime = System.nanoTime();
         while(true)
         {
             synchronized(stateChanges)
@@ -281,9 +316,22 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                     canvas.drawBitmap(offscreenSurface, src, dst, null);
                     surfaceHolder.unlockCanvasAndPost(canvas);
                     canvas = null;
+                    //timing test
+                    frames++;
+                    if(System.nanoTime() - startTime > 1000000000)
+                    {
+                        framesPerSecond = frames;
+                        frames = 0;
+                        startTime = System.nanoTime();
+                    }
                 }
             }
         }
+    }
+
+    public int getFramerate()
+    {
+        return framesPerSecond;
     }
 
     public void onPause()
@@ -293,6 +341,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         {
             if(isFinishing())
             {
+                soundPool.release();
                 stateChanges.add(stateChanges.size(), State.Disposed);
                 ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
             }

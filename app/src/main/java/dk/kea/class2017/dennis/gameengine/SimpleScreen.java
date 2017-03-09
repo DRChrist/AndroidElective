@@ -17,16 +17,26 @@ public class SimpleScreen extends Screen
     int y = 0;
     Bitmap bitmap;
     int clearColor = Color.DKGRAY;
+    Sound sound;
+    Music music;
+//    boolean isPlaying = false;
 
     public SimpleScreen(GameEngine game)
     {
         super(game);
         bitmap = game.loadBitmap("bob.png");
+        sound = game.loadSound("blocksplosion.wav");
+        music = game.loadMusic("music.ogg");
+        music.setLooping(true);
+        music.play();
+//        isPlaying = true;
     }
 
     @Override
     public void update(float deltaTime)
     {
+        Log.d("SimpleScreen", "*************** fps: " + game.getFramerate());
+
         game.clearFrameBuffer(clearColor);
 
         for(int pointer=0; pointer<5; pointer++)
@@ -34,6 +44,17 @@ public class SimpleScreen extends Screen
             if(game.isTouchDown(pointer))
             {
                 game.drawBitmap(bitmap, game.getTouchX(pointer), game.getTouchY(pointer));
+                //sound.play(1);
+                if(music.isPlaying())
+                {
+                    music.pause();
+//                    isPlaying = false;
+                }
+                else
+                {
+                    music.play();
+//                    isPlaying = true;
+                }
             }
         }
 
@@ -48,18 +69,19 @@ public class SimpleScreen extends Screen
     @Override
     public void pause()
     {
-
+        music.pause();
+//        isPlaying = false;
     }
 
     @Override
     public void resume()
     {
-
+        if(!music.isPlaying()) music.play();
     }
 
     @Override
     public void dispose()
     {
-
+        music.dispose();
     }
 }
