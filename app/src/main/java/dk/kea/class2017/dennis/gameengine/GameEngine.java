@@ -282,7 +282,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                             screen.pause();
                         }
                         Log.d("GameEngine", "state changed to Paused");
-                        return;
+                        //return;
                     }
                     if(state == State.Resumed)
                     {
