@@ -258,7 +258,8 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     public void run()
     {
         int frames = 0;
-        long startTime = System.nanoTime();
+        long lastTime = System.nanoTime();
+        long currentTime = lastTime;
         while(true)
         {
             synchronized(stateChanges)
@@ -302,7 +303,9 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                     // we will do all the drawing here
 
                     fillEvents();
-                    if(screen != null) screen.update(0);
+                    currentTime = System.nanoTime();
+                    if(screen != null) screen.update((currentTime - lastTime)/1000000000.0f);
+                    lastTime = currentTime;
                     freeEvents();
 
                     src.left = 0;
@@ -316,14 +319,6 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                     canvas.drawBitmap(offscreenSurface, src, dst, null);
                     surfaceHolder.unlockCanvasAndPost(canvas);
                     canvas = null;
-                    //timing test
-                    frames++;
-                    if(System.nanoTime() - startTime > 1000000000)
-                    {
-                        framesPerSecond = frames;
-                        frames = 0;
-                        startTime = System.nanoTime();
-                    }
                 }
             }
         }
