@@ -12,14 +12,16 @@ import dk.kea.class2017.dennis.gameengine.Screen;
 
 public class MainMenuScreen extends Screen
 {
-    Bitmap background;
+    Bitmap mainmenuBackground;
     Bitmap insertCoin;
     Music music;
+    long startTime = System.nanoTime();
+    float passedTime = 0;
 
     public MainMenuScreen(GameEngine game)
     {
         super(game);
-        background = game.loadBitmap("mainmenu.png");
+        mainmenuBackground = game.loadBitmap("mainmenu.png");
         insertCoin = game.loadBitmap("insertcoin.png");
         music = game.loadMusic("music.ogg");
         music.setLooping(true);
@@ -30,7 +32,19 @@ public class MainMenuScreen extends Screen
     @Override
     public void update(float deltaTime)
     {
-        game.drawBitmap(background, 0, 0);
+        if(game.isTouchDown(0))
+        {
+            game.setScreen(new GameScreen(game));
+            return; //We don't need this object anymore, this tells the OS that we don't need it anymore
+        }
+
+        game.drawBitmap(mainmenuBackground, 0, 0);
+
+        passedTime += deltaTime;
+        if((passedTime - (int)passedTime) > 0.5f)
+        {
+            game.drawBitmap(insertCoin, 160 - insertCoin.getWidth()/2, 320);
+        }
     }
 
     @Override
