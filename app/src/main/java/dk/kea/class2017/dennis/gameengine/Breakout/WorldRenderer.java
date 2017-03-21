@@ -13,16 +13,19 @@ public class WorldRenderer
     GameEngine game;
     World world;
     Bitmap ballImage;
+    Bitmap paddleImage;
 
     public WorldRenderer(GameEngine game, World world)
     {
         this.game = game;
         this.world = world;
         ballImage = game.loadBitmap("ball.png");
+        paddleImage = game.loadBitmap("paddle.png");
     }
 
     public void render()
     {
         game.drawBitmap(ballImage, (int)world.ball.x, (int)world.ball.y);
+        game.drawBitmap(paddleImage, (int)world.paddle.x, (int)world.paddle.y);
     }
 }

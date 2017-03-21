@@ -53,8 +53,12 @@ public class GameScreen extends Screen
 
         game.drawBitmap(background, 0, 0);
 
-        if(state == State.Running) world.update(deltaTime);
-        renderer.render();
+        if(state == State.Running)
+        {
+            world.update(deltaTime, game.getAccelerometer()[0]);
+            renderer.render();
+        }
+        if(world.gameOver) state = State.GameOver;
 
 
         if(state == State.Paused)
