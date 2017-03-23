@@ -29,7 +29,7 @@ public class GameScreen extends Screen
         background = game.loadBitmap("background.png");
         resume = game.loadBitmap("resume.png");
         gameOver = game.loadBitmap("gameover.png");
-        world = new World();
+        world = new World(game);
         renderer = new WorldRenderer(game, world);
     }
 
@@ -56,18 +56,19 @@ public class GameScreen extends Screen
         if(state == State.Running)
         {
             world.update(deltaTime, game.getAccelerometer()[0]);
-            renderer.render();
         }
-        if(world.gameOver) state = State.GameOver;
 
+        renderer.render();
+
+        if(world.gameOver) state = State.GameOver;
 
         if(state == State.Paused)
         {
-            game.drawBitmap(resume, 160 - resume.getWidth()/2, 240 - resume.getHeight()/2);
+            game.drawBitmap(resume, 160 - resume.getWidth()/2, 270 - resume.getHeight()/2);
         }
         if(state == State.GameOver)
         {
-            game.drawBitmap(gameOver, 160 - gameOver.getWidth()/2, 240 - gameOver.getHeight()/2);
+            game.drawBitmap(gameOver, 160 - gameOver.getWidth()/2, 270 - gameOver.getHeight()/2);
         }
 
     }

@@ -300,13 +300,17 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                 {
                     if(!surfaceHolder.getSurface().isValid()) continue;
                     Canvas canvas = surfaceHolder.lockCanvas();
-                    // we will do all the drawing here
+
 
                     fillEvents();
                     currentTime = System.nanoTime();
-                    if(screen != null) screen.update((currentTime - lastTime)/1000000000.0f);
+
+                    //this is where we call the update method in the current screen object
+                    if(screen != null) screen.update((currentTime - lastTime)/1_000_000_000.0f);
+
                     lastTime = currentTime;
                     freeEvents();
+
 
                     src.left = 0;
                     src.top = 0;
