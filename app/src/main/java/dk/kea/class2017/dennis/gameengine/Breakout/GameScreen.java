@@ -2,8 +2,11 @@ package dk.kea.class2017.dennis.gameengine.Breakout;
 
 import android.graphics.Bitmap;
 
+import java.util.List;
+
 import dk.kea.class2017.dennis.gameengine.GameEngine;
 import dk.kea.class2017.dennis.gameengine.Screen;
+import dk.kea.class2017.dennis.gameengine.TouchEvent;
 
 /**
  * Created by Dennis on 16/03/2017.
@@ -42,9 +45,16 @@ public class GameScreen extends Screen
         }
         if(state == State.GameOver && game.isTouchDown(0))
         {
-            game.setScreen(new MainMenuScreen(game));
-            return;
-        }
+            List<TouchEvent> events = game.getTouchEvents();
+            for(int i = 0; i < events.size(); i++)
+            {
+                if(events.get(i).type == TouchEvent.TouchEventType.Up)
+                {
+                    game.setScreen(new MainMenuScreen(game));
+                    return;
+                }
+            }
+        } //end of game over check
         if(state == State.Running && game.isTouchDown(0)
                 && game.getTouchX(0) > (320-40) && game.getTouchY(0) < 40)
         {

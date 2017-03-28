@@ -31,6 +31,10 @@ public class World
 
     public void update(float deltaTime, float accelX)//method called from update method in GameScreen
     {
+        if(blocks.size() == 0)
+        {
+            generateBlocks();
+        }
         ball.x = ball.x + ball.vx * deltaTime;
         ball.y = ball.y + ball.vy * deltaTime;
         if(ball.x < MIN_X)
@@ -38,17 +42,17 @@ public class World
             ball.vx = -ball.vx;
             ball.x = MIN_X;
         }
-        if(ball.x > MAX_X - ball.WIDTH)
+        if(ball.x > MAX_X - Ball.WIDTH)
         {
             ball.vx = -ball.vx;
-            ball.x = MAX_X - ball.WIDTH;
+            ball.x = MAX_X - Ball.WIDTH;
         }
         if(ball.y < MIN_Y)
         {
             ball.vy  = -ball.vy;
             ball.y = MIN_Y;
         }
-        if(ball.y > MAX_Y - ball.HEIGHT)
+        if(ball.y > MAX_Y - Ball.HEIGHT)
         {
             gameOver = true;
             return;
@@ -67,7 +71,7 @@ public class World
         if(paddle.x + Paddle.WIDTH > MAX_X) paddle.x = MAX_X - Paddle.WIDTH;
 
         collideBallPaddle();
-        collideBallBlocks();
+        collideBallBlocks(deltaTime);
     }
 
     private void generateBlocks()
@@ -84,30 +88,37 @@ public class World
 
     private void collideBallPaddle()
     {
-        //check for collision with left end of the paddle
-        if(ball.x + Ball.WIDTH > paddle.x && ball.x < paddle.x + 3
-                && ball.y + Ball.HEIGHT > paddle.y + 2)
-        {
-            ball.vy = -ball.vy;
-            if(ball.vx > 0) ball.vx = -ball.vx;
-            ball.y = paddle.y - Ball.HEIGHT;
-        }
-
-        //check for collision with right end of the paddle
-        if(ball.x + Ball.WIDTH > paddle.x + Paddle.WIDTH - 3 && ball.x < paddle.x + Paddle.WIDTH
-                && ball.y + Ball.HEIGHT > paddle.y + 2)
-        {
-            ball.vy = -ball.vy;
-            if(ball.vx < 0) ball.vx = -ball.vx;
-            ball.y = paddle.y - Ball.HEIGHT;
-        }
-
         if(ball.x + Ball.WIDTH > paddle.x && ball.x < paddle.x + Paddle.WIDTH
                 && ball.y + Ball.HEIGHT > paddle.y)
         {
-            ball.vy = -ball.vy;
-            ball.y = paddle.y - Ball.HEIGHT - 1;
+            //check for collision with left end of the paddle
+            if(ball.x + Ball.WIDTH > paddle.x && ball.x < paddle.x + 3
+                    && ball.y + Ball.HEIGHT > paddle.y + 2)
+            {
+                ball.vy = -ball.vy;
+                if(ball.vx > 0) ball.vx = -ball.vx;
+                ball.y = paddle.y - Ball.HEIGHT;
+            }
+
+            //check for collision with right end of the paddle
+            else if(ball.x + Ball.WIDTH > paddle.x + Paddle.WIDTH - 3 && ball.x < paddle.x + Paddle.WIDTH
+                    && ball.y + Ball.HEIGHT > paddle.y + 2)
+            {
+                ball.vy = -ball.vy;
+                if(ball.vx < 0) ball.vx = -ball.vx;
+                ball.y = paddle.y - Ball.HEIGHT;
+            }
+
+            else{
+                ball.vy = -ball.vy;
+                ball.y = paddle.y - Ball.HEIGHT - 1;
+            }
         }
+
+
+
+
+
     }
 
     private boolean collideRects(float x, float y, float width, float height,
@@ -120,7 +131,7 @@ public class World
         return false;
     }
 
-    private void collideBallBlocks()
+    private void collideBallBlocks(float deltaTime)
     {
         for(int i = 0; i < blocks.size(); i++)
         {
@@ -130,8 +141,69 @@ public class World
             {
                 blocks.remove(i);
                 i--;
+                float oldvx = ball.vx;
+                float oldvy = ball.vy;
+                reflectBall(ball, block);
+                ball.x = ball.x - oldvx * deltaTime * 1.01f;
+                ball.y = ball.y - oldvy * deltaTime * 1.01f;
             }
         }
     }
+
+    private void reflectBall(Ball ball, Block block)
+    {
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x, block.y, 1, 1)) //check the top left corner of the block
+        {
+            if(ball.vx > 0) ball.vx = -ball.vx;
+            if(ball.vy > 0) ball.vy = -ball.vy;
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x + Block.WIDTH, block.y, 1, 1)) //check the top right corner of the block
+        {
+            if(ball.vx < 0) ball.vx = -ball.vx;
+            if(ball.vy > 0) ball.vy = -ball.vy;
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x, block.y + Block.HEIGHT, 1, 1)) // check the bottom left corner of the block
+        {
+            if(ball.vx > 0) ball.vx = -ball.vx;
+            if(ball.vy < 0) ball.vy = -ball.vy;
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x + Block.WIDTH, block.y + Block.HEIGHT, 1, 1)) //check the bottom right corner of the block
+        {
+            if(ball.vx < 0) ball.vx = -ball.vx;
+            if(ball.vy < 0) ball.vy = -ball.vy;
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x, block.y, Block.WIDTH, 1)) //check the top edge of the block
+        {
+            ball.vy = -ball.vy; //should not be possible to get here from negative vy, so no if(vy>0) is needed
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x, block.y + Block.HEIGHT, Block.WIDTH, 1)) //check the bottom edge of the block
+        {
+            ball.vy = -ball.vy;
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x, block.y, 1, Block.HEIGHT)) //check the left edge of the block
+        {
+            ball.vx = -ball.vx;
+            return;
+        }
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
+                block.x + Block.WIDTH, block.y, 1, Block.HEIGHT)) //check the right edge of the block
+        {
+            ball.vx = -ball.vx;
+        }
+    }
+
 
 }

@@ -208,6 +208,12 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     {
         return touchHandler.isTouchDown(pointer);
     }
+
+    public List<TouchEvent> getTouchEvents()
+    {
+        return touchEventBufferCopied;
+    }
+
     public int getTouchX(int pointer)
     {
         return (int) (touchHandler.getTouchX(pointer) * (float) offscreenSurface.getWidth() / (float) surfaceView.getWidth());
