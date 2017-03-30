@@ -16,6 +16,9 @@ public class World
     public static final float MIN_Y = 40;
     public static final float MAX_Y = 479;
 
+    int points = 0;
+    CollisionListener collisionListener;
+
     boolean gameOver = false;
     Ball ball = new Ball();
     Paddle paddle = new Paddle();
@@ -23,9 +26,10 @@ public class World
 
     GameEngine game;
 
-    public World(GameEngine game)
+    public World(GameEngine game, CollisionListener collisionListener)
     {
         this.game = game;
+        this.collisionListener = collisionListener;
         generateBlocks();
     }
 
@@ -41,16 +45,19 @@ public class World
         {
             ball.vx = -ball.vx;
             ball.x = MIN_X;
+            collisionListener.collisionWall();
         }
         if(ball.x > MAX_X - Ball.WIDTH)
         {
             ball.vx = -ball.vx;
             ball.x = MAX_X - Ball.WIDTH;
+            collisionListener.collisionWall();
         }
         if(ball.y < MIN_Y)
         {
             ball.vy  = -ball.vy;
             ball.y = MIN_Y;
+            collisionListener.collisionWall();
         }
         if(ball.y > MAX_Y - Ball.HEIGHT)
         {
@@ -89,20 +96,22 @@ public class World
     private void collideBallPaddle()
     {
         //check left corner of the paddle
-        if(collideRects(ball.x, ball.y+Ball.HEIGHT, Ball.WIDTH, 1, paddle.x, paddle.y - Paddle.HEIGHT/3, 3, Paddle.HEIGHT/2))
+        if(collideRects(ball.x, ball.y+Ball.HEIGHT, Ball.WIDTH, 1, paddle.x, paddle.y, 3, Paddle.HEIGHT/2))
         {
             ball.vy = -ball.vy;
             if(ball.vx > 0) ball.vx = -ball.vx;
             ball.y = paddle.y - Ball.HEIGHT;
+            collisionListener.collisionPaddle();
             return;
         }
 
         //check right corner of the paddle
-        if(collideRects(ball.x, ball.y + Ball.HEIGHT, Ball.WIDTH, 1, paddle.x + Paddle.WIDTH, paddle.y - Paddle.HEIGHT/3, 3, Paddle.HEIGHT/2))
+        if(collideRects(ball.x, ball.y + Ball.HEIGHT, Ball.WIDTH, 1, paddle.x + Paddle.WIDTH, paddle.y, 3, Paddle.HEIGHT/2))
         {
             ball.vy = -ball.vy;
             if(ball.vx < 0) ball.vx = -ball.vx;
             ball.y = paddle.y - Ball.HEIGHT ;
+            collisionListener.collisionPaddle();
             return;
         }
 
@@ -111,6 +120,7 @@ public class World
         {
             ball.vy = -ball.vy;
             ball.y = paddle.y - Ball.HEIGHT - 1;
+            collisionListener.collisionPaddle();
             return;
         }
     }
@@ -135,6 +145,8 @@ public class World
             if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT,
                     block.x, block.y, Block.WIDTH, Block.HEIGHT))
             {
+                collisionListener.collisionBlock();
+                points = points + 10 - block.type;
                 blocks.remove(i);
                 i--;
                 float oldvx = ball.vx;

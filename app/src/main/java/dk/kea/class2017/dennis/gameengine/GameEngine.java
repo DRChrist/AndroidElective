@@ -7,7 +7,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -52,6 +54,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     private float[] accelerometer = new float[3];
     private SoundPool soundPool;
     private int framesPerSecond = 0;
+    private Paint paint = new Paint();
 
 
     public abstract Screen createStartScreen();
@@ -261,6 +264,23 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         System.arraycopy(event.values, 0, accelerometer, 0, 3);
     }
 
+    public Typeface loadFont(String fileName)
+    {
+        Typeface font = Typeface.createFromAsset(getAssets(), fileName);
+        if(font == null)
+        {
+            throw new RuntimeException("Could not load font from file" + fileName);
+        }
+        return font;
+    }
+
+    public void drawText(Typeface font, String text, int x, int y, int color, int size)
+    {
+        paint.setTypeface(font);
+        paint.setTextSize(size);
+        paint.setColor(color);
+        canvas.drawText(text, x, y+size, paint);
+    }
 
     public void run()
     {

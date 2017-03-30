@@ -1,11 +1,14 @@
 package dk.kea.class2017.dennis.gameengine.Breakout;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Typeface;
 
 import java.util.List;
 
 import dk.kea.class2017.dennis.gameengine.GameEngine;
 import dk.kea.class2017.dennis.gameengine.Screen;
+import dk.kea.class2017.dennis.gameengine.Sound;
 import dk.kea.class2017.dennis.gameengine.TouchEvent;
 
 /**
@@ -23,6 +26,10 @@ public class GameScreen extends Screen
     Bitmap background;
     Bitmap resume;
     Bitmap gameOver;
+    Typeface font;
+    Sound bounceSound;
+    Sound blockSound;
+    Sound gameoverSound;
     World world;
     WorldRenderer renderer;
 
@@ -32,7 +39,11 @@ public class GameScreen extends Screen
         background = game.loadBitmap("background.png");
         resume = game.loadBitmap("resume.png");
         gameOver = game.loadBitmap("gameover.png");
-        world = new World(game);
+        font = game.loadFont("font.ttf");
+        bounceSound = game.loadSound("bounce.wav");
+        blockSound = game.loadSound("blocksplosion.wav");
+        CollisionListener collisionListener = new MyCollisionListener(bounceSound, bounceSound, blockSound);
+        world = new World(game, collisionListener);
         renderer = new WorldRenderer(game, world);
     }
 
@@ -67,7 +78,7 @@ public class GameScreen extends Screen
         {
             world.update(deltaTime, game.getAccelerometer()[0]);
         }
-
+        game.drawText(font, "Score: " + Integer.toString(world.points), 28, 9, Color.GREEN, 14);
         renderer.render();
 
         if(world.gameOver) state = State.GameOver;
