@@ -88,38 +88,34 @@ public class World
 
     private void collideBallPaddle()
     {
-        if(ball.x + Ball.WIDTH > paddle.x && ball.x < paddle.x + Paddle.WIDTH
-                && ball.y + Ball.HEIGHT > paddle.y)
+        //check left corner of the paddle
+        if(collideRects(ball.x, ball.y+Ball.HEIGHT, Ball.WIDTH, 1, paddle.x, paddle.y - Paddle.HEIGHT/3, 3, Paddle.HEIGHT/2))
         {
-            //check for collision with left end of the paddle
-            if(ball.x + Ball.WIDTH > paddle.x && ball.x < paddle.x + 3
-                    && ball.y + Ball.HEIGHT > paddle.y + 2)
-            {
-                ball.vy = -ball.vy;
-                if(ball.vx > 0) ball.vx = -ball.vx;
-                ball.y = paddle.y - Ball.HEIGHT;
-            }
-
-            //check for collision with right end of the paddle
-            else if(ball.x + Ball.WIDTH > paddle.x + Paddle.WIDTH - 3 && ball.x < paddle.x + Paddle.WIDTH
-                    && ball.y + Ball.HEIGHT > paddle.y + 2)
-            {
-                ball.vy = -ball.vy;
-                if(ball.vx < 0) ball.vx = -ball.vx;
-                ball.y = paddle.y - Ball.HEIGHT;
-            }
-
-            else{
-                ball.vy = -ball.vy;
-                ball.y = paddle.y - Ball.HEIGHT - 1;
-            }
+            ball.vy = -ball.vy;
+            if(ball.vx > 0) ball.vx = -ball.vx;
+            ball.y = paddle.y - Ball.HEIGHT;
+            return;
         }
 
+        //check right corner of the paddle
+        if(collideRects(ball.x, ball.y + Ball.HEIGHT, Ball.WIDTH, 1, paddle.x + Paddle.WIDTH, paddle.y - Paddle.HEIGHT/3, 3, Paddle.HEIGHT/2))
+        {
+            ball.vy = -ball.vy;
+            if(ball.vx < 0) ball.vx = -ball.vx;
+            ball.y = paddle.y - Ball.HEIGHT ;
+            return;
+        }
 
-
-
-
+        //check middle part of paddle top edge
+        if(collideRects(ball.x, ball.y, Ball.WIDTH, Ball.HEIGHT, paddle.x, paddle.y, Paddle.WIDTH, 3))
+        {
+            ball.vy = -ball.vy;
+            ball.y = paddle.y - Ball.HEIGHT - 1;
+            return;
+        }
     }
+
+
 
     private boolean collideRects(float x, float y, float width, float height,
                               float x2, float y2, float width2, float height2)

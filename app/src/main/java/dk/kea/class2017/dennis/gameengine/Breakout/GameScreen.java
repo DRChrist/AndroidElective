@@ -43,7 +43,7 @@ public class GameScreen extends Screen
         {
             state = State.Running;
         }
-        if(state == State.GameOver && game.isTouchDown(0))
+        if(state == State.GameOver)
         {
             List<TouchEvent> events = game.getTouchEvents();
             for(int i = 0; i < events.size(); i++)

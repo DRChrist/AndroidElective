@@ -246,6 +246,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
             {
                 touchEventPool.free(touchEventCopied);
             }
+            touchEventBufferCopied.clear(); //empty the list of events
         }
     }
 
