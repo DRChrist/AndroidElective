@@ -22,7 +22,7 @@ public class GameScreen extends Screen
         Paused, Running, GameOver
     }
 
-    State state = State.Running;
+    State state = State.Paused;
     Bitmap background;
     Bitmap resume;
     Bitmap gameOver;
@@ -30,6 +30,7 @@ public class GameScreen extends Screen
     Sound bounceSound;
     Sound blockSound;
     Sound gameoverSound;
+    CollisionListener collisionListener;
     World world;
     WorldRenderer renderer;
 
@@ -42,9 +43,11 @@ public class GameScreen extends Screen
         font = game.loadFont("font.ttf");
         bounceSound = game.loadSound("bounce.wav");
         blockSound = game.loadSound("blocksplosion.wav");
-        CollisionListener collisionListener = new MyCollisionListener(bounceSound, bounceSound, blockSound);
+        gameoverSound = game.loadSound("gameover.wav");
+        CollisionListener collisionListener = new MyCollisionListener(bounceSound, bounceSound, blockSound, gameoverSound);
         world = new World(game, collisionListener);
         renderer = new WorldRenderer(game, world);
+        game.music.play();
     }
 
     @Override
@@ -53,6 +56,7 @@ public class GameScreen extends Screen
         if(state == State.Paused && game.isTouchDown(0))
         {
             state = State.Running;
+            resume();
         }
         if(state == State.GameOver)
         {
@@ -98,12 +102,13 @@ public class GameScreen extends Screen
     public void pause()
     {
         if(state == State.Running) state = State.Paused;
+        game.music.pause();
     }
 
     @Override
     public void resume()
     {
-//        if(state == State.Paused) state = State.Running;
+        game.music.play();
     }
 
     @Override

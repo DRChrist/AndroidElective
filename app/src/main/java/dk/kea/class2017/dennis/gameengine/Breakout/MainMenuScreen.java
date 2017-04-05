@@ -14,7 +14,6 @@ public class MainMenuScreen extends Screen
 {
     Bitmap mainmenuBackground;
     Bitmap insertCoin;
-    Music music;
     long startTime = System.nanoTime();
     float passedTime = 0;
 
@@ -23,9 +22,6 @@ public class MainMenuScreen extends Screen
         super(game);
         mainmenuBackground = game.loadBitmap("mainmenu.png");
         insertCoin = game.loadBitmap("insertcoin.png");
-        music = game.loadMusic("music.ogg");
-        music.setLooping(true);
-        music.play();
     }
 
 
@@ -34,6 +30,7 @@ public class MainMenuScreen extends Screen
     {
         if(game.isTouchDown(0))
         {
+            game.music.play();
             game.setScreen(new GameScreen(game));
             return; //We don't need this object anymore, this tells the OS that we don't need it anymore
         }

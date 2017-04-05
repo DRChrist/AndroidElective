@@ -55,6 +55,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     private SoundPool soundPool;
     private int framesPerSecond = 0;
     private Paint paint = new Paint();
+    public Music music;
 
 
     public abstract Screen createStartScreen();
@@ -107,7 +108,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
 
         try
         {
-            getAssets();
+//            getAssets();
             in = getAssets().open(fileName);
             bitmap = BitmapFactory.decodeStream(in);
             if(bitmap == null)

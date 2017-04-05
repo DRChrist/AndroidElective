@@ -17,6 +17,8 @@ public class World
     public static final float MAX_Y = 479;
 
     int points = 0;
+    int paddleHits = 0;
+    int blockAdvance = 0;
     CollisionListener collisionListener;
 
     boolean gameOver = false;
@@ -38,6 +40,8 @@ public class World
         if(blocks.size() == 0)
         {
             generateBlocks();
+            ball.x = 160;
+            ball.y = 240;
         }
         ball.x = ball.x + ball.vx * deltaTime;
         ball.y = ball.y + ball.vy * deltaTime;
@@ -62,6 +66,8 @@ public class World
         if(ball.y > MAX_Y - Ball.HEIGHT)
         {
             gameOver = true;
+            game.music.stop();
+            collisionListener.collisionOutOfScreen();
             return;
         }
 
@@ -100,8 +106,9 @@ public class World
         {
             ball.vy = -ball.vy;
             if(ball.vx > 0) ball.vx = -ball.vx;
-            ball.y = paddle.y - Ball.HEIGHT;
+            ball.y = paddle.y - Ball.HEIGHT - 1;
             collisionListener.collisionPaddle();
+            advanceBlocks();
             return;
         }
 
@@ -110,8 +117,9 @@ public class World
         {
             ball.vy = -ball.vy;
             if(ball.vx < 0) ball.vx = -ball.vx;
-            ball.y = paddle.y - Ball.HEIGHT ;
+            ball.y = paddle.y - Ball.HEIGHT - 1;
             collisionListener.collisionPaddle();
+            advanceBlocks();
             return;
         }
 
@@ -121,10 +129,28 @@ public class World
             ball.vy = -ball.vy;
             ball.y = paddle.y - Ball.HEIGHT - 1;
             collisionListener.collisionPaddle();
-            return;
+            advanceBlocks();
+//            return;
         }
     }
 
+    private void advanceBlocks()
+    {
+        paddleHits++;
+        if(paddleHits == 10)
+        {
+            paddleHits = 0;
+            blockAdvance = blockAdvance + 10;
+
+            int stop = blocks.size();
+            Block block = null;
+            for(int i = 0; i < stop; i++)
+            {
+                block = blocks.get(i);
+                block.y = block.y + blockAdvance;
+            }
+        }
+    }
 
 
     private boolean collideRects(float x, float y, float width, float height,
