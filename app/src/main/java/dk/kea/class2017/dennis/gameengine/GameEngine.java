@@ -69,14 +69,10 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         surfaceView = new SurfaceView(this);
         setContentView( surfaceView);
         surfaceHolder = surfaceView.getHolder();
-        if(surfaceView.getWidth() > surfaceView.getHeight())
-        {
-            setOffscreenSurface(480, 320);
-        }
-        else
-        {
-            setOffscreenSurface(320, 480);
-        }
+
+        //moved to onResume()
+        fixTheScreen();
+
         touchHandler = new MultiTouchHandler(surfaceView, touchEventBuffer, touchEventPool);
         SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if(manager.getSensorList(Sensor.TYPE_ACCELEROMETER).size() != 0)
@@ -166,6 +162,20 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
     public void clearFrameBuffer(int color)
     {
         canvas.drawColor(color);
+    }
+
+    public void fixTheScreen()
+    {
+//        Log.d("GameEngine", "************************ width: " + surfaceView.getWidth());
+//        Log.d("GameEngine", "************************ height: " + surfaceView.getHeight());
+        if(surfaceView.getWidth() > surfaceView.getHeight())
+        {
+            setOffscreenSurface(480, 320);
+        }
+        else
+        {
+            setOffscreenSurface(320, 480);
+        }
     }
 
     public void setOffscreenSurface(int width, int height)
@@ -290,6 +300,8 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         long currentTime = lastTime;
         while(true)
         {
+            fixTheScreen();
+
             synchronized(stateChanges)
             {
                 for(int i = 0; i < stateChanges.size(); i++)
@@ -394,6 +406,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                 manager.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_GAME);
             }
         }
+        fixTheScreen();
     }
 
 }
