@@ -17,6 +17,7 @@ public class WorldRenderer
     Bitmap scrBackImage;
     Bitmap carImage;
     Bitmap monsterImage;
+    Bitmap playerImage;
 
 
     public WorldRenderer(GameEngine game, World world)
@@ -28,6 +29,7 @@ public class WorldRenderer
         scrBackImage = game.loadBitmap("xcarbackground.png");
         carImage = game.loadBitmap("xbluecar2.png");
         monsterImage = game.loadBitmap("xyellowmonster.png");
+        playerImage = game.loadBitmap("xrunningalien.png");
     }
 
 
@@ -35,6 +37,9 @@ public class WorldRenderer
     {
         game.drawBitmap(scrBackImage, 0, 0, (int)world.scrollingBackground.scrollx,
                 0, screenWidth, screenHeight);
-        game.drawBitmap(carImage, 30, 160);
+
+        game.drawBitmap(playerImage, world.player.x, world.player.y,
+                world.player.spritex, world.player.spritey,
+                world.player.WIDTH, world.player.HEIGHT);
     }
 }
