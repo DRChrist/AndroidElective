@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".WhipGame.WhipGame"
+        <activity android:name=".PipeGame.PipeGame"
             android:screenOrientation="portrait"
             android:configChanges="keyboard|keyboardHidden|orientation">
             <intent-filter>
