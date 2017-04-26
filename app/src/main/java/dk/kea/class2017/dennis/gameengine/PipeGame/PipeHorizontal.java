@@ -16,6 +16,7 @@ public class PipeHorizontal extends Pipe
         super(x, y);
     }
 
+
     public float getWIDTH()
     {
         return this.WIDTH;

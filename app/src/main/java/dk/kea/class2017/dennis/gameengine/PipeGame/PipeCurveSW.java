@@ -16,25 +16,22 @@ public class PipeCurveSW extends Pipe
         super(x, y);
     }
 
-    @Override
+
     public float getWIDTH()
     {
         return this.WIDTH;
     }
 
-    @Override
     public float getHEIGHT()
     {
         return this.HEIGHT;
     }
 
-    @Override
     public int getSpritex()
     {
         return this.spritex;
     }
 
-    @Override
     public int getSpritey()
     {
         return this.spritey;

@@ -20,6 +20,7 @@ public class World
     public static final float MAX_Y = 479;
 
     List<Pipe> pipes = new ArrayList<>();
+    boolean goingUp = false;
 
     GameEngine game;
 
@@ -43,50 +44,107 @@ public class World
             {
                 int lastPipeIndex = pipes.size() - 1;
                 Pipe lastPipe = pipes.get(lastPipeIndex);
-                if(events.get(i).y < lastPipe.y)
+                Log.d("World", "Lastpipeindex = " + lastPipeIndex);
+                if(events.get(i).y < lastPipe.y)//if clicking above the pipe
                 {
-                    if(lastPipe instanceof PipeVertical)
+                    if(lastPipe instanceof PipeVertical && goingUp)
                     {
                         pipes.add(new PipeVertical(lastPipe.x, lastPipe.y - 32));
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeVertical && !goingUp)
+                    {
+                        turningRight(lastPipeIndex, lastPipe);
                     }
                     else
                     {
-                        int lastPipex = (int)lastPipe.x;
-                        int lastPipey = (int)lastPipe.y;
-                        pipes.remove(lastPipeIndex);
-                        pipes.add(lastPipeIndex, new PipeCurveNW(lastPipex, lastPipey));
-                        lastPipex = (int)pipes.get(lastPipeIndex).x;
-                        lastPipey = (int)pipes.get(lastPipeIndex).y;
-                        pipes.add(new PipeVertical(lastPipex - 22, lastPipey));
-
+                        turningUp(lastPipeIndex, lastPipe);
                     }
                 }
-                if(events.get(i).y > (lastPipe.y + lastPipe.HEIGHT))
+                if(events.get(i).y > (lastPipe.y + lastPipe.getHEIGHT())) //if clicking below the pipe
                 {
-                    if(lastPipe instanceof PipeVertical)
+                    if(lastPipe instanceof PipeVertical && !goingUp)
                     {
                         pipes.add(new PipeVertical(lastPipe.x, lastPipe.y + 32));
                     }
+                    else if(lastPipe instanceof PipeVertical && goingUp)
+                    {
+                        turningRight(lastPipeIndex, lastPipe);
+                    }
                     else
                     {
-                        int lastPipex = (int)lastPipe.x;
-                        int lastPipey = (int)lastPipe.y;
-                        pipes.remove(lastPipeIndex);
-                        pipes.add(lastPipeIndex, new PipeCurveSW(lastPipex, lastPipey));
-                        lastPipe = pipes.get(lastPipeIndex);
-                        lastPipex = (int)lastPipe.x;
-                        lastPipey = (int)lastPipe.y;
-                        pipes.add(new PipeVertical(lastPipex - 22, lastPipey + lastPipe.HEIGHT));
+                       turningDown(lastPipeIndex, lastPipe);
                     }
                 }
                 if(events.get(i).y == lastPipe.y ||
                         (events.get(i).y > (lastPipe.y) &&
-                                events.get(i).y < lastPipe.y + lastPipe.HEIGHT))
+                                events.get(i).y < lastPipe.y + lastPipe.getHEIGHT()))//clicking at same y as pipe
                 {
-                    pipes.add(new PipeHorizontal(lastPipe.x + lastPipe.WIDTH, lastPipe.y));
+                    if(lastPipe instanceof PipeHorizontal)
+                    {
+                        pipes.add(new PipeHorizontal(lastPipe.x + lastPipe.getWIDTH(), lastPipe.y));
+                    }
+                    else
+                    {
+                        turningRight(lastPipeIndex, lastPipe);
+                    }
                 }
 
             }
+        }
+    }
+
+    public void turningUp(int lastPipeIndex, Pipe lastPipe)
+    {
+        int lastPipex = (int)lastPipe.x;
+        int lastPipey = (int)lastPipe.y;
+        pipes.remove(lastPipeIndex);
+        pipes.add(lastPipeIndex, new PipeCurveNW(lastPipex, lastPipey - 5));
+        lastPipe = pipes.get(lastPipeIndex);
+        lastPipex = (int)lastPipe.x;
+        lastPipey = (int)lastPipe.y;
+        pipes.add(new PipeVertical(lastPipex + lastPipe.getWIDTH() - 22, lastPipey - 32));
+        goingUp = true;
+        return;
+    }
+
+    public void turningDown(int lastPipeIndex, Pipe lastPipe)
+    {
+        int lastPipex = (int)lastPipe.x;
+        int lastPipey = (int)lastPipe.y;
+        pipes.remove(lastPipeIndex);
+        pipes.add(lastPipeIndex, new PipeCurveSW(lastPipex, lastPipey));
+        lastPipe = pipes.get(lastPipeIndex);
+        lastPipex = (int)lastPipe.x;
+        lastPipey = (int)lastPipe.y;
+        pipes.add(new PipeVertical(lastPipex + lastPipe.getWIDTH() - 22, lastPipey + lastPipe.getHEIGHT()));
+        goingUp = false;
+        return;
+    }
+
+    public void turningRight(int lastPipeIndex, Pipe lastPipe)
+    {
+        if(goingUp)
+        {
+            int lastPipex = (int)lastPipe.x;
+            int lastPipey = (int)lastPipe.y;
+            pipes.remove(lastPipeIndex);
+            pipes.add(lastPipeIndex, new PipeCurveSE(lastPipex, lastPipey + 6));
+            lastPipe = pipes.get(lastPipeIndex);
+            lastPipex = (int)lastPipe.x;
+            lastPipey = (int)lastPipe.y;
+            pipes.add(new PipeHorizontal(lastPipex + lastPipe.getWIDTH(), lastPipey));
+        }
+        else
+        {
+            int lastPipex = (int)lastPipe.x;
+            int lastPipey = (int)lastPipe.y;
+            pipes.remove(lastPipeIndex);
+            pipes.add(lastPipeIndex, new PipeCurveNE(lastPipex, lastPipey));
+            lastPipe = pipes.get(lastPipeIndex);
+            lastPipex = (int)lastPipe.x;
+            lastPipey = (int)lastPipe.y;
+            pipes.add(new PipeHorizontal(lastPipex + lastPipe.getWIDTH(), lastPipey + 5));
         }
     }
 }
