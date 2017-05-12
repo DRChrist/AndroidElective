@@ -13,9 +13,15 @@ public class WorldRenderer
 {
     GameEngine game;
     World world;
+    int screenWidth;
+    int screenHeight;
     Bitmap pipeImage;
-    int loopSize = 0;
+    Bitmap scrBackImage;
+    Bitmap monsterImage;
+    int pipeSize = 0;
+    int monsterSize = 0;
     Pipe pipe = null;
+    Monster monster = null;
 
 
     public WorldRenderer(GameEngine game, World world)
@@ -23,16 +29,31 @@ public class WorldRenderer
         this.game = game;
         this.world = world;
         pipeImage = game.loadBitmap("plumspipes.png");
+        scrBackImage = game.loadBitmap("gloomybackground.jpg");
+        monsterImage = game.loadBitmap("xyellowmonster.png");
+        screenWidth = game.getFrameBufferWidth();
+        screenHeight = game.getFrameBufferHeight();
     }
 
     public void render()
     {
-        loopSize = world.pipes.size();
-        for(int i = 0; i < loopSize; i++)
+        game.drawBitmap(scrBackImage, 0, 0, (int)world.background.scrollx,
+                0, screenWidth, screenHeight);
+
+        pipeSize = world.pipes.size();
+        for(int i = 0; i < pipeSize; i++)
         {
             pipe = world.pipes.get(i);
             game.drawBitmap(pipeImage, (int)pipe.x, (int)pipe.y,
                     pipe.getSpritex(), pipe.getSpritey(), (int)pipe.getWIDTH(), (int)pipe.getHEIGHT());
         }
+
+        monsterSize = world.monsters.size();
+        for(int i = 0; i < monsterSize; i++)
+        {
+            monster = world.monsters.get(i);
+            game.drawBitmap(monsterImage, (int)monster.x, (int)monster.y);
+        }
+
     }
 }

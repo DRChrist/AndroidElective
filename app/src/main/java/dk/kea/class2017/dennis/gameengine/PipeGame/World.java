@@ -15,20 +15,26 @@ import dk.kea.class2017.dennis.gameengine.TouchEvent;
 public class World
 {
     public static final float MIN_X = 0;
-    public static final float MAX_X = 319;
+    public static final float MAX_X = 1279;
     public static final float MIN_Y = 0;
     public static final float MAX_Y = 479;
 
     List<Pipe> pipes = new ArrayList<>();
+    List<Monster> monsters = new ArrayList<>();
     boolean goingUp = false;
     boolean goingLeft = false;
     boolean gameOver = false;
+    boolean gameCompleted = false;
+    ScrollingBackground background;
+    int screenWidth;
 
     GameEngine game;
 
     public World(GameEngine game)
     {
         this.game = game;
+        background = new ScrollingBackground();
+        screenWidth = game.getFrameBufferWidth();
     }
 
     public void update(float deltaTime)
@@ -36,8 +42,30 @@ public class World
         if(pipes.size() == 0)
         {
 //            pipes.add(new PipeHorizontal(303, (int) Math.ceil(Math.random() * 457)));
+            pipes.add(new PipeHorizontal(1265, 0));
+            pipes.add(new PipeHorizontal(1265, 23));
+            pipes.add(new PipeHorizontal(1265, 46));
+            pipes.add(new PipeHorizontal(1265, 69));
+            pipes.add(new PipeHorizontal(1265, 92));
+            pipes.add(new PipeHorizontal(1265, 115));
+            pipes.add(new PipeHorizontal(1265, 138));
+            pipes.add(new PipeHorizontal(1265, 161));
+            pipes.add(new PipeHorizontal(1265, 184));
+            pipes.add(new PipeHorizontal(1265, 207));
+            pipes.add(new PipeHorizontal(1265, 230));
+            pipes.add(new PipeHorizontal(1265, 253));
+            pipes.add(new PipeHorizontal(1265, 276));
+            pipes.add(new PipeHorizontal(1265, 299));
+            pipes.add(new PipeHorizontal(1265, 322));
+            pipes.add(new PipeHorizontal(1265, 345));
+            pipes.add(new PipeHorizontal(1265, 368));
+            pipes.add(new PipeHorizontal(1265, 391));
+            pipes.add(new PipeHorizontal(1265, 414));
+            pipes.add(new PipeHorizontal(1265, 437));
+            pipes.add(new PipeHorizontal(1265, 460));
             pipes.add(new PipeHorizontal(0, 240));
         }
+        if(monsters.size() == 0) generateMonsters();
 
         List<TouchEvent> events = game.getTouchEvents();
         for(int i = 0; i < events.size(); i++)
@@ -144,6 +172,20 @@ public class World
                         turningLeft(lastPipeIndex, lastPipe);
                     }
                 }
+            }
+        }
+        //Moving through the level
+        Pipe endPipe = pipes.get(pipes.size() - 1);
+        if(endPipe.x > screenWidth/3 && background.scrollx < (MAX_X - screenWidth))
+        {
+            background.scrollx = background.scrollx + endPipe.getWIDTH() * 2*deltaTime;
+            for(Pipe p : pipes)
+            {
+                p.x = p.x - endPipe.getWIDTH() * 2*deltaTime;
+            }
+            for(Monster m : monsters)
+            {
+                m.x = m.x - endPipe.getWIDTH() * 2*deltaTime;
             }
         }
     }
@@ -260,23 +302,58 @@ public class World
 
     public void checkForCollision()
     {
-        Log.d("CollisionCheck", "method initiated " + pipes.size() + "***********************");
+        Pipe pipe = null;
+        Monster monster = null;
+        int i;
         Pipe lastPipe = pipes.get(pipes.size() - 1);
-        for(int i = 0; i < (pipes.size() - 1); i++)
+        for(i = 0; i < 22; i++)
         {
-            if(pipes.get(i).x < (lastPipe.x + lastPipe.getWIDTH()) && (pipes.get(i).x + pipes.get(i).getWIDTH()) > lastPipe.x
-                    && (pipes.get(i).y + pipes.get(i).getHEIGHT()) > lastPipe.y && pipes.get(i).y < (lastPipe.y + lastPipe.getHEIGHT()))
+            pipe = pipes.get(i);
+            //check for collision with end-of-level pipes
+            if(pipe.x < (lastPipe.x + lastPipe.getWIDTH()) && (pipe.x + pipe.getWIDTH()) > lastPipe.x
+                    && (pipe.y + pipe.getHEIGHT()) > lastPipe.y && pipe.y < (lastPipe.y + lastPipe.getHEIGHT()))
+            {
+                gameCompleted = true;
+                return;
+            }
+        }
+        for(i = 22; i < (pipes.size() - 1); i++)
+        {
+            pipe = pipes.get(i);
+            //check for collision with other pipes
+            if(pipe.x < (lastPipe.x + lastPipe.getWIDTH()) && (pipe.x + pipe.getWIDTH()) > lastPipe.x
+                    && (pipe.y + pipe.getHEIGHT()) > lastPipe.y && pipe.y < (lastPipe.y + lastPipe.getHEIGHT()))
             {
                 gameOver = true;
                 return;
             }
         }
-        if(lastPipe.x < 0 || lastPipe.x + lastPipe.getWIDTH() > game.getFrameBufferWidth()
+        //check for collision with sides
+        if(lastPipe.x < 0 || lastPipe.x + lastPipe.getWIDTH() > MAX_X
             || lastPipe.y < 0 || lastPipe.y + lastPipe.getHEIGHT() > game.getFrameBufferHeight())
         {
             Log.d("CollisionCheck", "sideCollision********************");
             gameOver = true;
             return;
+        }
+        //check for collision with monsters
+        for(int j = 0; j < (monsters.size() - 1); j++)
+        {
+            monster = monsters.get(j);
+            if(monster.x < (lastPipe.x + lastPipe.getWIDTH()) && (monster.x + monster.WIDTH) > lastPipe.x
+                    && (monster.y + monster.HEIGHT) > lastPipe.y && monster.y < (lastPipe.y + lastPipe.getHEIGHT()))
+            {
+                gameOver = true;
+                return;
+            }
+        }
+    }
+
+    public void generateMonsters()
+    {
+        for(int i = 0; i < 20; i++)
+        {
+            monsters.add(new Monster((int)Math.ceil(Math.random() * 1260), (int)Math.ceil(Math.random() * 480)));
         }
     }
 }
