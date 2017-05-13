@@ -31,7 +31,7 @@ public class GameScreen extends Screen
         super(game);
         background = game.loadBitmap("gloomybackground.jpg");
         gameOver = game.loadBitmap("gameover.png");
-        gameCompleted = game.loadBitmap("gamecompleted.png");
+        gameCompleted = game.loadBitmap("gamecompletedbig.png");
         world = new World(game);
         renderer = new WorldRenderer(game, world);
     }
@@ -39,7 +39,6 @@ public class GameScreen extends Screen
     @Override
     public void update(float deltaTime)
     {
-        game.drawBitmap(background, 0, 0);
 
         if(state == State.GameOver || state == State.GameCompleted)
         {
@@ -56,7 +55,7 @@ public class GameScreen extends Screen
 
         if(state == State.Running)
         {
-            world.update(deltaTime);
+            world.update(deltaTime, game.getAccelerometer()[1], game.getAccelerometer()[0]);
         }
         renderer.render();
 

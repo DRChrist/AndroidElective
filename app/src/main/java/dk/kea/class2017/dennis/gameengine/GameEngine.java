@@ -73,7 +73,7 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
         //moved to onResume()
         fixTheScreen();
 
-        touchHandler = new MultiTouchHandler(surfaceView, touchEventBuffer, touchEventPool);
+        touchHandler = new MultiTouchHandler(surfaceView, touchEventBuffer, touchEventPool, offscreenSurface, surfaceView);
         SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if(manager.getSensorList(Sensor.TYPE_ACCELEROMETER).size() != 0)
         {

@@ -25,8 +25,10 @@ public class World
     boolean goingLeft = false;
     boolean gameOver = false;
     boolean gameCompleted = false;
+    boolean pipeBuild = false;
     ScrollingBackground background;
     int screenWidth;
+    float passedTime = 0;
 
     GameEngine game;
 
@@ -37,7 +39,7 @@ public class World
         screenWidth = game.getFrameBufferWidth();
     }
 
-    public void update(float deltaTime)
+    public void update(float deltaTime, float accelY, float accelX)
     {
         if(pipes.size() == 0)
         {
@@ -63,120 +65,28 @@ public class World
             pipes.add(new PipeHorizontal(1265, 414));
             pipes.add(new PipeHorizontal(1265, 437));
             pipes.add(new PipeHorizontal(1265, 460));
-            pipes.add(new PipeHorizontal(0, 240));
+            pipes.add(new PipeHorizontal(0, MAX_Y/2));
         }
         if(monsters.size() == 0) generateMonsters();
 
-        List<TouchEvent> events = game.getTouchEvents();
-        for(int i = 0; i < events.size(); i++)
+        checkForTouch();
+
+        passedTime += deltaTime;
+        if((passedTime - (int)passedTime) > 0.5f)
         {
-            if(events.get(i).type == TouchEvent.TouchEventType.Up)
+            if(!pipeBuild)
             {
-                int lastPipeIndex = pipes.size() - 1;
-                Pipe lastPipe = pipes.get(lastPipeIndex);
-                if(events.get(i).y < lastPipe.y)//if clicking above the pipe
-                {
-                    if(lastPipe instanceof PipeVertical && goingUp)
-                    {
-                        pipes.add(new PipeVertical(lastPipe.x, lastPipe.y - 32));
-                        checkForCollision();
-                        return;
-                    }
-                    else if(lastPipe instanceof PipeVertical && !goingUp)
-                    {
-                        if(events.get(i).x < lastPipe.x)
-                        {
-                            turningLeft(lastPipeIndex, lastPipe);
-                        }
-                        else
-                        {
-                            turningRight(lastPipeIndex, lastPipe);
-                        }
-                    }
-                    else
-                    {
-                        turningUp(lastPipeIndex, lastPipe);
-                    }
-                }
-                if(events.get(i).y > (lastPipe.y + lastPipe.getHEIGHT())) //if clicking below the pipe
-                {
-                    if(lastPipe instanceof PipeVertical && !goingUp)
-                    {
-                        pipes.add(new PipeVertical(lastPipe.x, lastPipe.y + 32));
-                        checkForCollision();
-                        return;
-                    }
-                    else if(lastPipe instanceof PipeVertical && goingUp)
-                    {
-                        if(events.get(i).x < lastPipe.x)
-                        {
-                            turningLeft(lastPipeIndex, lastPipe);
-                        }
-                        else
-                        {
-                            turningRight(lastPipeIndex, lastPipe);
-                        }
-                    }
-                    else
-                    {
-                       turningDown(lastPipeIndex, lastPipe);
-                    }
-                }
-                if(events.get(i).x > lastPipe.x && (events.get(i).y >= lastPipe.y &&
-                                events.get(i).y < lastPipe.y + lastPipe.getHEIGHT()))//if clicking right of pipe
-                {
-                    if(lastPipe instanceof PipeHorizontal && !goingLeft)
-                    {
-                        pipes.add(new PipeHorizontal(lastPipe.x + lastPipe.getWIDTH(), lastPipe.y));
-                        checkForCollision();
-                        return;
-                    }
-                    else if(lastPipe instanceof PipeHorizontal && goingLeft)
-                    {
-                        if(lastPipe.y > game.getFrameBufferHeight()/2)
-                        {
-                            turningUp(lastPipeIndex, lastPipe);
-                        }
-                        else
-                        {
-                            turningDown(lastPipeIndex, lastPipe);
-                        }
-                    }
-                    else
-                    {
-                        turningRight(lastPipeIndex, lastPipe);
-                    }
-                }
-                if(events.get(i).x < lastPipe.x && (events.get(i).y >= lastPipe.y &&
-                                events.get(i).y < lastPipe.y + lastPipe.getHEIGHT())) //if clicking left of pipe
-                {
-                    if(lastPipe instanceof PipeHorizontal && goingLeft)
-                    {
-                        pipes.add(new PipeHorizontal(lastPipe.x - lastPipe.getWIDTH(), lastPipe.y));
-                        checkForCollision();
-                        return;
-                    }
-                    else if(lastPipe instanceof PipeHorizontal && !goingLeft)
-                    {
-                        if(lastPipe.y > game.getFrameBufferHeight()/2)
-                        {
-                            turningUp(lastPipeIndex, lastPipe);
-                        }
-                        else
-                        {
-                            turningDown(lastPipeIndex, lastPipe);
-                        }
-                    }
-                    else
-                    {
-                        turningLeft(lastPipeIndex, lastPipe);
-                    }
-                }
+                autoBuildPipe(accelY, accelX);
+                pipeBuild = true;
             }
+        }
+        else
+        {
+            pipeBuild = false;
         }
         //Moving through the level
         Pipe endPipe = pipes.get(pipes.size() - 1);
-        if(endPipe.x > screenWidth/3 && background.scrollx < (MAX_X - screenWidth))
+        if(endPipe.x > screenWidth/2 && background.scrollx < (MAX_X - screenWidth))
         {
             background.scrollx = background.scrollx + endPipe.getWIDTH() * 2*deltaTime;
             for(Pipe p : pipes)
@@ -188,6 +98,20 @@ public class World
                 m.x = m.x - endPipe.getWIDTH() * 2*deltaTime;
             }
         }
+        else if(endPipe.x < screenWidth/3 && background.scrollx > 0)
+        {
+            background.scrollx = background.scrollx - endPipe.getWIDTH() * 2*deltaTime;
+            for(Pipe p : pipes)
+            {
+                p.x = p.x + endPipe.getWIDTH() * 2*deltaTime;
+            }
+            for(Monster m : monsters)
+            {
+                m.x = m.x + endPipe.getWIDTH() * 2*deltaTime;
+            }
+        }
+
+        moveMonsters(deltaTime);
     }
 
     public void turningUp(int lastPipeIndex, Pipe lastPipe)
@@ -330,7 +254,7 @@ public class World
         }
         //check for collision with sides
         if(lastPipe.x < 0 || lastPipe.x + lastPipe.getWIDTH() > MAX_X
-            || lastPipe.y < 0 || lastPipe.y + lastPipe.getHEIGHT() > game.getFrameBufferHeight())
+            || lastPipe.y < 0 || lastPipe.y + lastPipe.getHEIGHT() > MAX_Y)
         {
             Log.d("CollisionCheck", "sideCollision********************");
             gameOver = true;
@@ -355,5 +279,250 @@ public class World
         {
             monsters.add(new Monster((int)Math.ceil(Math.random() * 1260), (int)Math.ceil(Math.random() * 480)));
         }
+    }
+
+    public void moveMonsters(float deltaTime)
+    {
+        for(Monster m : monsters)
+        {
+            if(Math.random() < 0.1)//so the monsters only move some of the time
+            {
+                double dir = Math.random();
+                if(dir < 0.25)
+                {
+                    m.x = m.x + m.v * deltaTime * 350;//move to the right
+                }
+                else if(dir > 0.25 && dir < 0.5)
+                {
+                    m.x = m.x - m.v * deltaTime * 350;//move to the left
+                }
+                else if(dir > 0.5 && dir < 0.75)
+                {
+                    m.y = m.y - m.v * deltaTime * 350;//move up
+                }
+                else
+                {
+                    m.y = m.y + m.v * deltaTime * 350;//move down
+                }
+            }
+        }
+    }
+
+    public void autoBuildPipe(float accelY, float accelX)
+    {
+                int lastPipeIndex = pipes.size() - 1;
+                Pipe lastPipe = pipes.get(lastPipeIndex);
+                if(accelY < 2)//if clicking above the pipe
+                {
+                    if(lastPipe instanceof PipeVertical && goingUp)
+                    {
+                        pipes.add(new PipeVertical(lastPipe.x, lastPipe.y - 32));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeVertical && !goingUp)
+                    {
+                        if(accelX > 0)
+                        {
+                            turningLeft(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningRight(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningUp(lastPipeIndex, lastPipe);
+                    }
+                }
+                if(accelY > 3) //if clicking below the pipe
+                {
+                    if(lastPipe instanceof PipeVertical && !goingUp)
+                    {
+                        pipes.add(new PipeVertical(lastPipe.x, lastPipe.y + 32));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeVertical && goingUp)
+                    {
+                        if(accelX > 0)
+                        {
+                            turningLeft(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningRight(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningDown(lastPipeIndex, lastPipe);
+                    }
+                }
+                if(accelX < 0 && (accelY >= 2 &&
+                        accelY < 3))//if clicking right of pipe
+                {
+                    if(lastPipe instanceof PipeHorizontal && !goingLeft)
+                    {
+                        pipes.add(new PipeHorizontal(lastPipe.x + lastPipe.getWIDTH(), lastPipe.y));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeHorizontal && goingLeft)
+                    {
+                        if(lastPipe.y > game.getFrameBufferHeight()/2)
+                        {
+                            turningUp(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningDown(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningRight(lastPipeIndex, lastPipe);
+                    }
+                }
+                if(accelX > 0 && (accelY >= 2 &&
+                        accelY < 3)) //if clicking left of pipe
+                {
+                    if(lastPipe instanceof PipeHorizontal && goingLeft)
+                    {
+                        pipes.add(new PipeHorizontal(lastPipe.x - lastPipe.getWIDTH(), lastPipe.y));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeHorizontal && !goingLeft)
+                    {
+                        if(lastPipe.y > game.getFrameBufferHeight()/2)
+                        {
+                            turningUp(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningDown(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningLeft(lastPipeIndex, lastPipe);
+                    }
+                }
+            }
+
+    public void checkForTouch()
+    {
+        List<TouchEvent> events = game.getTouchEvents();
+        TouchEvent touch = null;
+        for(int i = 0; i < events.size(); i++)
+        {
+            touch = events.get(i);
+            if(touch.type == TouchEvent.TouchEventType.Up)
+            {
+                int lastPipeIndex = pipes.size() - 1;
+                Pipe lastPipe = pipes.get(lastPipeIndex);
+                if(touch.y < lastPipe.y)//if clicking above the pipe
+                {
+                    if(lastPipe instanceof PipeVertical && goingUp)
+                    {
+                        pipes.add(new PipeVertical(lastPipe.x, lastPipe.y - 32));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeVertical && !goingUp)
+                    {
+                        if(touch.x < lastPipe.x)
+                        {
+                            turningLeft(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningRight(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningUp(lastPipeIndex, lastPipe);
+                    }
+                }
+                if(touch.y > (lastPipe.y + lastPipe.getHEIGHT())) //if clicking below the pipe
+                {
+                    if(lastPipe instanceof PipeVertical && !goingUp)
+                    {
+                        pipes.add(new PipeVertical(lastPipe.x, lastPipe.y + 32));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeVertical && goingUp)
+                    {
+                        if(touch.x < lastPipe.x)
+                        {
+                            turningLeft(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningRight(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningDown(lastPipeIndex, lastPipe);
+                    }
+                }
+                if(touch.x > lastPipe.x && (touch.y >= lastPipe.y &&
+                        touch.y < lastPipe.y + lastPipe.getHEIGHT()))//if clicking right of pipe
+                {
+                    if(lastPipe instanceof PipeHorizontal && !goingLeft)
+                    {
+                        pipes.add(new PipeHorizontal(lastPipe.x + lastPipe.getWIDTH(), lastPipe.y));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeHorizontal && goingLeft)
+                    {
+                        if(lastPipe.y > game.getFrameBufferHeight()/2)
+                        {
+                            turningUp(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningDown(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningRight(lastPipeIndex, lastPipe);
+                    }
+                }
+                if(touch.x < lastPipe.x && (touch.y >= lastPipe.y &&
+                        touch.y < lastPipe.y + lastPipe.getHEIGHT())) //if clicking left of pipe
+                {
+                    if(lastPipe instanceof PipeHorizontal && goingLeft)
+                    {
+                        pipes.add(new PipeHorizontal(lastPipe.x - lastPipe.getWIDTH(), lastPipe.y));
+                        checkForCollision();
+                        return;
+                    }
+                    else if(lastPipe instanceof PipeHorizontal && !goingLeft)
+                    {
+                        if(lastPipe.y > game.getFrameBufferHeight()/2)
+                        {
+                            turningUp(lastPipeIndex, lastPipe);
+                        }
+                        else
+                        {
+                            turningDown(lastPipeIndex, lastPipe);
+                        }
+                    }
+                    else
+                    {
+                        turningLeft(lastPipeIndex, lastPipe);
+                    }
+                }
+            }
+        }
+
     }
 }

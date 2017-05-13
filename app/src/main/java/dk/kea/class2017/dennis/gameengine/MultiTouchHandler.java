@@ -1,7 +1,9 @@
 package dk.kea.class2017.dennis.gameengine;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 
 import java.util.List;
@@ -17,12 +19,17 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
     private int[] touchY = new int[20];
     private List<TouchEvent> touchEventBuffer;
     private TouchEventPool touchEventPool;
+    private Bitmap offscreenSurface;
+    private SurfaceView surfaceView;
 
-    public MultiTouchHandler(View v, List<TouchEvent> touchEventBuffer, TouchEventPool touchEventPool)
+    public MultiTouchHandler(View v, List<TouchEvent> touchEventBuffer, TouchEventPool touchEventPool,
+                             Bitmap offscreenSurface, SurfaceView surfaceView)
     {
         v.setOnTouchListener(this);
         this.touchEventBuffer = touchEventBuffer;
         this.touchEventPool = touchEventPool;
+        this.offscreenSurface = offscreenSurface;
+        this.surfaceView = surfaceView;
     }
 
 
@@ -42,9 +49,9 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
                 touchEvent.type = TouchEvent.TouchEventType.Down;
                 touchEvent.pointer = pointerId;
                 touchX[pointerId] = (int) event.getX(pointerIndex);
-                touchEvent.x = touchX[pointerId];
+                touchEvent.x = (int)(touchX[pointerId] * (float) offscreenSurface.getWidth() / (float) surfaceView.getWidth());
                 touchY[pointerId] = (int) event.getY(pointerIndex);
-                touchEvent.y = touchY[pointerId];
+                touchEvent.y = (int)(touchY[pointerId] * (float) offscreenSurface.getHeight() / (float) surfaceView.getHeight());
                 isTouched[pointerId] = true;
                 synchronized (touchEventBuffer)
                 {
@@ -58,9 +65,9 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
                 touchEvent.type = TouchEvent.TouchEventType.Up;
                 touchEvent.pointer = pointerId;
                 touchX[pointerId] = (int) event.getX(pointerIndex);
-                touchEvent.x = touchX[pointerId];
+                touchEvent.x = (int)(touchX[pointerId] * (float) offscreenSurface.getWidth() / (float) surfaceView.getWidth());
                 touchY[pointerId] = (int) event.getY(pointerIndex);
-                touchEvent.y = touchY[pointerId];
+                touchEvent.y = (int)(touchY[pointerId] * (float) offscreenSurface.getHeight() / (float) surfaceView.getHeight());
                 isTouched[pointerId] = false;
                 synchronized (touchEventBuffer)
                 {
@@ -69,19 +76,25 @@ public class MultiTouchHandler implements TouchHandler, View.OnTouchListener
                 break;
             case MotionEvent.ACTION_MOVE:
                 int pointerCount = event.getPointerCount();
-                for(int i=0; i<pointerCount; i++)
+                synchronized (touchEventBuffer)
                 {
-                    touchEvent = touchEventPool.obtain();
-                    touchEvent.type = TouchEvent.TouchEventType.Dragged;
-                    pointerIndex = i;
-                    pointerId = event.getPointerId(pointerIndex);
-                    touchEvent.pointer = pointerId;
-                    touchX[pointerId] = (int) event.getX(pointerIndex);
-                    touchEvent.x = touchX[pointerId];
-                    touchY[pointerId] = (int) event.getY(pointerIndex);
-                    touchEvent.y = touchY[pointerId];
-                    isTouched[pointerId] = true;
-                    touchEventBuffer.add(touchEvent);
+                    for (int i = 0; i < pointerCount; i++)
+                    {
+                        touchEvent = touchEventPool.obtain();
+                        touchEvent.type = TouchEvent.TouchEventType.Dragged;
+                        pointerIndex = i;
+                        pointerId = event.getPointerId(pointerIndex);
+                        touchEvent.pointer = pointerId;
+                        touchX[pointerId] = (int) event.getX(pointerIndex);
+                        touchEvent.x = (int)(touchX[pointerId] * (float) offscreenSurface.getWidth() / (float) surfaceView.getWidth());
+                        touchY[pointerId] = (int) event.getY(pointerIndex);
+                        touchEvent.y = (int)(touchY[pointerId] * (float) offscreenSurface.getHeight() / (float) surfaceView.getHeight());
+                        isTouched[pointerId] = true;
+                        synchronized (touchEventBuffer)
+                        {
+                            touchEventBuffer.add(touchEvent);
+                        }
+                    }
                 }
                 break;
         }//end of switch statement

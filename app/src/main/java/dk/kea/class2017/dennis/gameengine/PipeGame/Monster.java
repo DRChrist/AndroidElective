@@ -10,6 +10,7 @@ public class Monster
     public static final int HEIGHT = 25;
     public float x;
     public float y;
+    public float v = 1;
 
     public Monster(float x, float y)
     {
