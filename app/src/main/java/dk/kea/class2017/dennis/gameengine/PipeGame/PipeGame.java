@@ -13,16 +13,20 @@ public class PipeGame extends GameEngine
     @Override
     public Screen createStartScreen()
     {
+        music = this.loadMusic("onaqui.wav");
+        music.setLooping(true);
         return new MainMenuScreen(this);
     }
 
     public void onPause()
     {
+        music.pause();
         super.onPause();
     }
 
     public void onResume()
     {
+        music.play();
         super.onResume();
     }
 

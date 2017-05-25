@@ -6,6 +6,7 @@ import java.util.List;
 
 import dk.kea.class2017.dennis.gameengine.GameEngine;
 import dk.kea.class2017.dennis.gameengine.Screen;
+import dk.kea.class2017.dennis.gameengine.Sound;
 import dk.kea.class2017.dennis.gameengine.TouchEvent;
 
 /**
@@ -23,6 +24,8 @@ public class GameScreen extends Screen
     Bitmap background;
     Bitmap gameOver;
     Bitmap gameCompleted;
+    Sound buildPipeSound;
+    Sound gameoverSound;
     World world;
     WorldRenderer renderer;
 
@@ -32,8 +35,12 @@ public class GameScreen extends Screen
         background = game.loadBitmap("gloomybackground.jpg");
         gameOver = game.loadBitmap("gameover.png");
         gameCompleted = game.loadBitmap("gamecompletedbig.png");
-        world = new World(game);
+        buildPipeSound = game.loadSound("blocksplosion.wav");
+        gameoverSound = game.loadSound("gameover.wav");
+        SoundPlayer soundPlayer = new SoundPlayer(buildPipeSound, gameoverSound);
+        world = new World(game, soundPlayer);
         renderer = new WorldRenderer(game, world);
+        game.music.play();
     }
 
     @Override
@@ -77,12 +84,13 @@ public class GameScreen extends Screen
     public void pause()
     {
         if(state == State.Running) state = State.Paused;
+        game.music.pause();
     }
 
     @Override
     public void resume()
     {
-
+        game.music.play();
     }
 
     @Override

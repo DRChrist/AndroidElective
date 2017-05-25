@@ -389,6 +389,15 @@ public abstract class GameEngine extends Activity implements Runnable, SensorEve
                 stateChanges.add(stateChanges.size(), State.Paused);
             }
         }
+        mainLoopThread.interrupt();
+        try
+        {
+            mainLoopThread.join();
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void onResume()

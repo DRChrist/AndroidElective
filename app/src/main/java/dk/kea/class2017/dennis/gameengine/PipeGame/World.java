@@ -30,11 +30,13 @@ public class World
     int screenWidth;
     float passedTime = 0;
 
+    SoundPlayer soundPlayer;
     GameEngine game;
 
-    public World(GameEngine game)
+    public World(GameEngine game, SoundPlayer soundPlayer)
     {
         this.game = game;
+        this.soundPlayer = soundPlayer;
         background = new ScrollingBackground();
         screenWidth = game.getFrameBufferWidth();
     }
@@ -77,6 +79,7 @@ public class World
             if(!pipeBuild)
             {
                 autoBuildPipe(accelY, accelX);
+                soundPlayer.buildPipe();
                 pipeBuild = true;
             }
         }
@@ -230,7 +233,7 @@ public class World
         Monster monster = null;
         int i;
         Pipe lastPipe = pipes.get(pipes.size() - 1);
-        for(i = 0; i < 22; i++)
+        for(i = 0; i < 21; i++)
         {
             pipe = pipes.get(i);
             //check for collision with end-of-level pipes
@@ -241,7 +244,7 @@ public class World
                 return;
             }
         }
-        for(i = 22; i < (pipes.size() - 1); i++)
+        for(i = 21; i < (pipes.size() - 1); i++)
         {
             pipe = pipes.get(i);
             //check for collision with other pipes
@@ -249,6 +252,8 @@ public class World
                     && (pipe.y + pipe.getHEIGHT()) > lastPipe.y && pipe.y < (lastPipe.y + lastPipe.getHEIGHT()))
             {
                 gameOver = true;
+                game.music.stop();
+                soundPlayer.gameover();
                 return;
             }
         }
@@ -258,6 +263,8 @@ public class World
         {
             Log.d("CollisionCheck", "sideCollision********************");
             gameOver = true;
+            game.music.stop();
+            soundPlayer.gameover();
             return;
         }
         //check for collision with monsters
@@ -268,6 +275,8 @@ public class World
                     && (monster.y + monster.HEIGHT) > lastPipe.y && monster.y < (lastPipe.y + lastPipe.getHEIGHT()))
             {
                 gameOver = true;
+                game.music.stop();
+                soundPlayer.gameover();
                 return;
             }
         }
@@ -360,7 +369,7 @@ public class World
                         turningDown(lastPipeIndex, lastPipe);
                     }
                 }
-                if(accelX < 0 && (accelY >= 2 &&
+                if(accelX <= 0 && (accelY >= 2 &&
                         accelY < 3))//if clicking right of pipe
                 {
                     if(lastPipe instanceof PipeHorizontal && !goingLeft)
@@ -419,6 +428,8 @@ public class World
         for(int i = 0; i < events.size(); i++)
         {
             touch = events.get(i);
+            //touch.x =  touch.x * (float) offscreenSurface.getWidth() / (float) surfaceView.getWidth();
+            //touch.y = touch.y * (float)offscreenSurface.getHeight() / (float)surfaceView.getHeight();
             if(touch.type == TouchEvent.TouchEventType.Up)
             {
                 int lastPipeIndex = pipes.size() - 1;

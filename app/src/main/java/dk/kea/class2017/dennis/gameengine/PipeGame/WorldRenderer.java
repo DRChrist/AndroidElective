@@ -30,7 +30,7 @@ public class WorldRenderer
         this.world = world;
         pipeImage = game.loadBitmap("plumspipes.png");
         scrBackImage = game.loadBitmap("gloomybackground.jpg");
-        monsterImage = game.loadBitmap("xyellowmonster.png");
+        monsterImage = game.loadBitmap("greenyellowmonster.png");
         screenWidth = game.getFrameBufferWidth();
         screenHeight = game.getFrameBufferHeight();
     }
