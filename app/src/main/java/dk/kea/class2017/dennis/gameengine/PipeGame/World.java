@@ -74,7 +74,7 @@ public class World
         checkForTouch();
 
         passedTime += deltaTime;
-        if((passedTime - (int)passedTime) > 0.5f)
+        if((int)(passedTime * 10) % 10 == 0)
         {
             if(!pipeBuild)
             {
@@ -91,26 +91,26 @@ public class World
         Pipe endPipe = pipes.get(pipes.size() - 1);
         if(endPipe.x > screenWidth/2 && background.scrollx < (MAX_X - screenWidth))
         {
-            background.scrollx = background.scrollx + endPipe.getWIDTH() * 2*deltaTime;
+            background.scrollx = background.scrollx + endPipe.getWIDTH() * 10*deltaTime;
             for(Pipe p : pipes)
             {
-                p.x = p.x - endPipe.getWIDTH() * 2*deltaTime;
+                p.x = p.x - endPipe.getWIDTH() * 10*deltaTime;
             }
             for(Monster m : monsters)
             {
-                m.x = m.x - endPipe.getWIDTH() * 2*deltaTime;
+                m.x = m.x - endPipe.getWIDTH() * 10*deltaTime;
             }
         }
         else if(endPipe.x < screenWidth/3 && background.scrollx > 0)
         {
-            background.scrollx = background.scrollx - endPipe.getWIDTH() * 2*deltaTime;
+            background.scrollx = background.scrollx - endPipe.getWIDTH() * 10*deltaTime;
             for(Pipe p : pipes)
             {
-                p.x = p.x + endPipe.getWIDTH() * 2*deltaTime;
+                p.x = p.x + endPipe.getWIDTH() * 10*deltaTime;
             }
             for(Monster m : monsters)
             {
-                m.x = m.x + endPipe.getWIDTH() * 2*deltaTime;
+                m.x = m.x + endPipe.getWIDTH() * 10*deltaTime;
             }
         }
 
